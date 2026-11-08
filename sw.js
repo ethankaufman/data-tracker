@@ -4,14 +4,16 @@
 // get the latest data files. Offline: the saved copy is used, so the site still opens and
 // shows the last data it loaded.
 
-const CACHE = "pl-market-tracker-v1";
+const CACHE = "pl-market-tracker-v2";
 
 // Saved when the worker installs, so the site opens offline even before every page was visited.
 const SHELL = [
   "./",
   "index.html",
   "browse.html",
+  "table.html",
   "trends.html",
+  "guide.html",
   "manifest.webmanifest",
   "assets/style.css",
   "assets/data.mjs",
@@ -20,6 +22,7 @@ const SHELL = [
   "assets/charts.mjs",
   "assets/today.mjs",
   "assets/browse.mjs",
+  "assets/table.mjs",
   "assets/trends.mjs",
   "data/status.json",
   "data/history.csv",

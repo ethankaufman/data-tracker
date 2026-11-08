@@ -3,8 +3,8 @@
 [![Tests](https://github.com/ethankaufman/data-tracker/actions/workflows/tests.yml/badge.svg)](https://github.com/ethankaufman/data-tracker/actions/workflows/tests.yml)
 
 Once a day, a GitHub Action downloads the prices of Premier League prediction markets
-(who wins the title, who is relegated, who finishes in the top 4, 6 and 10), adds them to a
-history with one row per item per day, opens a GitHub Issue listing what moved the most,
+(who wins the title, who is relegated, who finishes in the top 4, 6 and 10) and the Premier
+League table, adds them to a history with one row per item per day, opens a GitHub Issue listing what moved the most,
 and publishes the result to a website.
 
 **Live site:** https://ethankaufman.github.io/data-tracker/ (installable as an app, works offline)
@@ -19,32 +19,38 @@ market's **implied probability** of the event (a price of 0.25 means the market 
 chance). Each market has one sub-market per club, so an item is *a club in one market*, for
 example "Arsenal wins the title".
 
+The league table (position, games, goals, points for every club) comes from ESPN's public feed and
+sits next to the market prices.
+
 This is a trading market, not a bookmaker, and some markets are thinly traded. Prices of rarely
 traded clubs can sit at the lowest allowed price or jump on a single trade. The tool records
 what the market says and makes no claim that it is right.
 
 ## Sources
 
-Each source is one Polymarket event, read from the public Gamma API
-(`https://gamma-api.polymarket.com/events?slug=<slug>`). No login or key is needed. The format is
-JSON.
+The five market sources are Polymarket events, read from the public Gamma API
+(`https://gamma-api.polymarket.com/events?slug=<slug>`). The sixth source is the league table from
+ESPN's public feed. No login or key is needed for any of them. The format is JSON.
 
-| Source name | Polymarket event (slug) | Question for each club | Items |
+| Source name | Where from (Polymarket event slug, or URL) | Question for each club | Items |
 |---|---|---|---|
 | `title` | `epl-2027-champion-20260701200428749` | Wins the Premier League title | 20 |
 | `relegation` | `premier-league-teams-relegated-2026-27` | Is relegated | 20 |
 | `top4` | `premier-league-top-4-finishers-2026-27` | Finishes in the top 4 | 20 |
 | `top6` | `premier-league-top-6-finishers-2026-27` | Finishes in the top 6 | 20 |
 | `top10` | `premier-league-top-10-finishers-2026-27` | Finishes in the top 10 | 20 |
+| `standings` | ESPN: `https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings` | The Premier League table: one row per club | 20 |
 
-That is 100 items. The sources are in `tracker/sources.py`.
+That is 120 items: 100 market prices and 20 league table rows. The sources are in `tracker/sources.py`.
 
 **What is kept.** An answer holds far more than we use (descriptions, images, rules). The raw
 file keeps the whole answer, exactly as received. The history keeps, for each club's market, only
 the columns listed below. Markets that are inactive or closed (such as the placeholder rows
-"Team A", "Team B", "Team C") and the row "Other" are dropped. Two spellings that differ between
-markets are mapped to one name: "Brighton" → "Brighton & Hove Albion" and
-"Tottenham" → "Tottenham Hotspur".
+"Team A", "Team B", "Team C") and the row "Other" are dropped. Spellings that differ between
+sources are mapped to one name: "Brighton" → "Brighton & Hove Albion", "Tottenham" →
+"Tottenham Hotspur" and "AFC Bournemouth" → "Bournemouth". From the ESPN table the history keeps, for each
+club, only the position, games played, won, drawn, lost, goals for and against, goal difference and points
+(logos, links and other fields stay in the raw file).
 
 ## The history file: `data/history.csv`
 
@@ -56,7 +62,7 @@ value the source does not report is left empty.
 | `date` | UTC date of the run | `YYYY-MM-DD` |
 | `item_id` | Key that identifies the item from day to day: `<source>:<club-slug>`, e.g. `title:arsenal` | text |
 | `item` | The club's name | text |
-| `source` | Which market the row comes from: `title`, `relegation`, `top4`, `top6` or `top10` | text |
+| `source` | Which source the row comes from: `title`, `relegation`, `top4`, `top6`, `top10` (markets) or `standings` (the league table) | text |
 | `price` | Price of a "Yes" share = the market's implied probability of the event | 0 to 1 |
 | `best_bid` | Highest price a buyer is offering for a Yes share | 0 to 1 |
 | `best_ask` | Lowest price a seller is asking for a Yes share | 0 to 1 |
@@ -66,6 +72,18 @@ value the source does not report is left empty.
 | `volume_24h` | Value traded in the last 24 hours (often empty when nothing traded) | US dollars |
 | `liquidity` | Value of the orders waiting in the market | US dollars |
 | `updated_at` | When Polymarket last updated this market | UTC timestamp |
+| `position` | League table position (`standings` rows only) | 1 to 20 |
+| `played` | Games played (`standings` rows only) | games |
+| `won` | Games won (`standings` rows only) | games |
+| `drawn` | Games drawn (`standings` rows only) | games |
+| `lost` | Games lost (`standings` rows only) | games |
+| `goals_for` | Goals scored (`standings` rows only) | goals |
+| `goals_against` | Goals conceded (`standings` rows only) | goals |
+| `goal_difference` | `goals_for` − `goals_against` (`standings` rows only) | goals |
+| `points` | League points, 3 per win and 1 per draw (`standings` rows only) | points |
+
+The market columns (`price` to `updated_at`) are empty on `standings` rows, and the league table columns
+(`position` to `points`) are empty on market rows.
 
 ## The status file: `data/status.json`
 
@@ -81,7 +99,7 @@ A **move** is the change in an item's `price` between the latest day in the hist
 previous day with data, in **percentage points** (a price going from 0.30 to 0.35 is +5.0 pp).
 Items are ranked by the size of the change, up or down, and **the 10 biggest moves** are listed in
 the daily issue with the old and new values. Items with no price on one of the two days cannot be
-compared and are left out; items whose price did not change are not moves. An item in the latest
+compared and are left out; items whose price did not change are not moves. League table rows have no price, so they are not ranked as moves. An item in the latest
 day but not the previous one has **appeared**; one in the previous day but not the latest has
 **gone**. The issue lists both. The rule is in `tracker/moves.py`.
 
@@ -117,7 +135,7 @@ If a conversion rule changes, running it applies the change to every day.
 ## The site
 
 Plain HTML, CSS and JavaScript (no build step), published with GitHub Pages from the `main` branch.
-The three pages load `data/status.json` and `data/history.csv` in the browser and do every
+It has the three required pages (Today, Browse, Trends) plus a league Table page and a Guide. The pages load `data/status.json` and `data/history.csv` in the browser and do every
 calculation there. All pages share one navigation bar (`assets/ui.mjs`) and one stylesheet
 (`assets/style.css`: system fonts, an indigo header, and a colour-blind-checked chart palette; it
 follows the device's light or dark setting).
@@ -126,6 +144,8 @@ follows the device's light or dark setting).
 |---|---|
 | `index.html` (Today) | Time of the last run, the status of every source, the counts from `status.json` (items, days with data, new and gone), the biggest moves since the previous run, and the latest values of every item with their change since the previous run |
 | `browse.html` (Browse) | The latest values for every item. Filters for market, price range, spread and "traded in the last 24 hours", a search box for club names, sorting up and down on every numeric column, and a star on every item that saves it to a shortlist in the browser (it is still there after a reload) |
+| `table.html` (Table) | The full league table (position, played, won, drawn, lost, goals, goal difference, points, points per game, and the market's title and relegation chances), sortable on every column with a club search. Clicking a club opens its panel: record, goals per game, every market price with its change, and charts of its prices and points over the days. The address holds the club (`table.html?club=Arsenal`), so a link opens straight to it |
+| `guide.html` (Guide) | Plain-language explanation of every number on the site, the five markets, each page and each finding, where the data comes from, and common questions |
 | `trends.html` (Trends) | A chart of any numeric value over the days with a picker for the clubs, and five findings, each with a heading that states the result, a paragraph with the numbers and how they are computed, a chart, and the table behind the chart |
 
 The five findings on Trends: who is the title favourite; how far each market's prices are from a
@@ -172,13 +192,13 @@ issue handling, and that the Trends numbers agree with the history file (this on
 | `tracker/report.py` | Writes the text of the daily issue |
 | `tracker/issues.py` | Opens today's issue, updates it on a second run, closes the previous day's |
 | `tracker/run.py` | The daily run that ties the steps together (`python -m tracker.run`) |
-| `index.html`, `browse.html`, `trends.html` | The three pages of the site |
+| `index.html`, `browse.html`, `table.html`, `trends.html`, `guide.html` | The pages of the site |
 | `assets/style.css` | The look shared by all pages |
 | `assets/ui.mjs` | Shared page code: navigation bar, number formats, the shortlist, "Install app" button |
 | `assets/data.mjs` | Loads and parses `status.json` and `history.csv` |
 | `assets/stats.mjs` | Every calculation the pages show (moves, findings), as plain functions |
 | `assets/charts.mjs` | The line, bar and column charts, tooltips and "show the numbers" tables |
-| `assets/today.mjs`, `assets/browse.mjs`, `assets/trends.mjs` | The code of each page |
+| `assets/today.mjs`, `assets/browse.mjs`, `assets/table.mjs`, `assets/trends.mjs` | The code of each page (the Guide is plain HTML) |
 | `manifest.webmanifest` | Web app manifest (name, colours, icons) so the site can be installed |
 | `sw.js` | Service worker: saves copies of the pages and data so the site opens offline |
 | `icons/` | The app icons (`icon.svg`, and PNGs made by `tools/make_icons.py`) |
