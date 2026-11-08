@@ -62,7 +62,7 @@ function legend(items) {
 
 // ----- line chart: one line per series, one point per day -----
 // options: days[], series[{label,color,values[]}], format(v), axisFormat(v), dayLabel(day), height
-export function lineChart(host, { days, series, format, axisFormat = format, dayLabel = (d) => d, height = 320, name = "Line chart" }) {
+export function lineChart(host, { days, series, format, axisFormat = format, dayLabel = (d) => d, height = 320, name = "Line chart", reverse = false, fromZero = true, lowest = null }) {
   host.replaceChildren();
   host.classList.add("chart");
   const body = el("div");
@@ -75,12 +75,14 @@ export function lineChart(host, { days, series, format, axisFormat = format, day
     const m = { top: 12, right: direct ? 120 : 16, bottom: 30, left: 58 };
     const all = series.flatMap((s) => s.values).filter((v) => v != null);
     let lo = Math.min(...all), hi = Math.max(...all);
-    if (lo >= 0 && lo < hi * 0.5) lo = 0;
+    if (fromZero && lo >= 0 && lo < hi * 0.5) lo = 0;
     const pad = (hi - lo) * 0.08 || Math.abs(hi) * 0.1 || 0.01;
-    const ticks = niceTicks(lo >= 0 && lo === 0 ? 0 : lo - pad, hi + pad);
+    let ticks = niceTicks(lo === 0 ? 0 : lo - pad, hi + pad);
+    if (lowest != null) { ticks = [lowest, ...ticks.filter((t) => t > lowest)]; } // e.g. a table position never goes below 1
     const yLo = ticks[0], yHi = ticks.at(-1);
     const x = (i) => (days.length === 1 ? m.left + (W - m.left - m.right) / 2 : m.left + (i * (W - m.left - m.right)) / (days.length - 1));
-    const y = (v) => height - m.bottom - ((v - yLo) / (yHi - yLo)) * (height - m.top - m.bottom);
+    const y = (v) => (reverse ? m.top + ((v - yLo) / (yHi - yLo)) * (height - m.top - m.bottom) // reverse: low numbers at the top (a table position of 1 is the best)
+      : height - m.bottom - ((v - yLo) / (yHi - yLo)) * (height - m.top - m.bottom));
 
     const root = svg("svg", { viewBox: `0 0 ${W} ${height}`, role: "img", tabindex: 0, "aria-label": `${name}. Use the left and right arrow keys to move between days.` });
     root.append(svg("g", { class: "grid" }, ticks.map((t) => svg("line", { x1: m.left, x2: W - m.right, y1: y(t), y2: y(t) }))));

@@ -1,6 +1,6 @@
 import { loadData } from "./data.mjs";
-import { MARKETS, marketLabel, days, latestAndPrevious, rowsOn, titleFavourites, marketTotals, sinceFirstRun, dailyBiggestMoves, spreadByMarket, series } from "./stats.mjs";
-import { el, startPage, render, showError, offlineNotice, pct, pp, formatDay, formatShortDay, COLUMNS, columnInfo } from "./ui.mjs";
+import { MARKETS, marketLabel, days, latestAndPrevious, rowsOn, titleFavourites, marketTotals, sinceFirstRun, dailyBiggestMoves, spreadByMarket, series, leagueTable, leagueSeries } from "./stats.mjs";
+import { el, startPage, render, showError, offlineNotice, pct, pp, formatDay, formatShortDay, COLUMNS, LEAGUE_COLUMNS, columnInfo } from "./ui.mjs";
 import { lineChart, barChart, columnChart, tableView, SERIES_COLORS } from "./charts.mjs";
 
 startPage();
@@ -19,44 +19,62 @@ function finding(id, heading, paragraphs, how, chart, table) {
 const waiting = (text) => el("div", { class: "empty" }, text);
 
 // ---------- the chart of each value over the days, with a picker for the items ----------
-function overTime(rows) {
-  const all = days(rows);
+// "Value" can be a market value (price, spread...) or a league table value (points, position...).
+// Market values chart a club in one market; league table values chart a club in the table.
+function overTime(rows, all) {
+  const marketDays = days(rows);
   const { latest } = latestAndPrevious(rows);
-  const today = rowsOn(rows, latest);
-  const byId = new Map(today.map((r) => [r.item_id, r]));
-  const state = {
-    column: "price",
-    market: "title",
-    selected: today.filter((r) => r.source === "title").sort((a, b) => (b.price ?? 0) - (a.price ?? 0)).slice(0, 4).map((r) => r.item_id),
-  };
+  const marketToday = rowsOn(rows, latest);
+  const table = leagueTable(all);
+  const tableToday = table.list.map((r) => ({ item_id: r.item_id, item: r.club, source: "standings", points: r.points }));
+  const MARKET_VALUES = COLUMNS, LEAGUE_VALUES = table.list.length ? LEAGUE_COLUMNS : [];
+  const isLeague = (column) => LEAGUE_VALUES.some((c) => c.key === column);
+
+  const defaultsFor = (league) => (league
+    ? [...tableToday].sort((a, b) => (b.points ?? 0) - (a.points ?? 0)).slice(0, 4).map((r) => r.item_id)
+    : marketToday.filter((r) => r.source === "title").sort((a, b) => (b.price ?? 0) - (a.price ?? 0)).slice(0, 4).map((r) => r.item_id));
+  const state = { column: "price", market: "title", selected: defaultsFor(false) };
   // A club keeps its colour while it is selected, whatever else is added or removed.
   const slotOf = new Map();
   const assign = () => { for (const id of state.selected) if (!slotOf.has(id)) slotOf.set(id, [...Array(8).keys()].find((k) => ![...slotOf.values()].includes(k))); };
+  const pool = () => (isLeague(state.column) ? tableToday : marketToday.filter((r) => r.source === state.market));
+  const nameOf = (id) => { const r = [...marketToday, ...tableToday].find((x) => x.item_id === id); return r ? `${r.item} · ${r.source === "standings" ? "League table" : marketLabel(r.source)}` : id; };
 
   const chart = el("div");
   const chips = el("div", { class: "chips", role: "group", "aria-label": "Clubs" });
   const picked = el("div", { class: "chips", "aria-label": "Selected" });
-  const table = el("div");
+  const table_ = el("div");
   const note = el("p", { class: "muted small", role: "status" });
+  const marketControl = el("label", { class: "control" }, "Add clubs from the market");
 
   function draw() {
+    const league = isLeague(state.column);
+    marketControl.hidden = league;
     for (const id of [...slotOf.keys()]) if (!state.selected.includes(id)) slotOf.delete(id);
     assign();
     const info = columnInfo(state.column);
-    const data = series(rows, state.selected, state.column).map((s) => ({ ...s, color: SERIES_COLORS[slotOf.get(s.id)] }));
-    chips.replaceChildren(...today.filter((r) => r.source === state.market).sort((a, b) => a.item.localeCompare(b.item)).map((r) => {
+    let chartDays, data;
+    if (league) {
+      const result = leagueSeries(all, state.selected, state.column);
+      chartDays = result.days;
+      data = result.series.map((s) => ({ ...s, label: nameOf(s.id).split(" · ")[0], color: SERIES_COLORS[slotOf.get(s.id)] }));
+    } else {
+      chartDays = marketDays;
+      data = series(rows, state.selected, state.column).map((s) => ({ ...s, color: SERIES_COLORS[slotOf.get(s.id)] }));
+    }
+    chips.replaceChildren(...pool().sort((a, b) => a.item.localeCompare(b.item)).map((r) => {
       const on = state.selected.includes(r.item_id);
       return el("button", { class: "chip", type: "button", "aria-pressed": String(on), onclick: () => toggle(r.item_id) },
         el("span", { class: "key", style: on ? `background:${SERIES_COLORS[slotOf.get(r.item_id)]}` : null }), r.item);
     }));
     picked.replaceChildren(el("span", { class: "muted small" }, `Selected (${state.selected.length} of 8): `),
-      ...state.selected.map((id) => el("button", { class: "chip", type: "button", "aria-label": `Remove ${byId.get(id)?.item ?? id}`, onclick: () => toggle(id) },
-        el("span", { class: "key", style: `background:${SERIES_COLORS[slotOf.get(id)]}` }), `${byId.get(id)?.item ?? id} · ${marketLabel(byId.get(id)?.source)}`, " ×")),
+      ...state.selected.map((id) => el("button", { class: "chip", type: "button", "aria-label": `Remove ${nameOf(id)}`, onclick: () => toggle(id) },
+        el("span", { class: "key", style: `background:${SERIES_COLORS[slotOf.get(id)]}` }), nameOf(id), " ×")),
       state.selected.length ? el("button", { class: "plain", type: "button", onclick: () => { state.selected = []; draw(); } }, "Clear") : null);
-    lineChart(chart, { days: all, series: data, format: info.format, dayLabel: formatShortDay, name: `${info.label} over the days` });
-    note.textContent = all.length === 1 ? "Only one day of history so far: each club shows as a single dot. Lines appear from the second day." : `${all.length} days of history, ${formatDay(all[0])} to ${formatDay(all.at(-1))}.`;
-    table.replaceChildren(state.selected.length
-      ? tableView(["Day", ...data.map((s) => s.label)], all.map((d, i) => [formatShortDay(d), ...data.map((s) => (s.values[i] == null ? "–" : info.format(s.values[i])))]))
+    lineChart(chart, { days: chartDays, series: data, format: info.format, dayLabel: formatShortDay, name: `${info.label} over the days`, reverse: state.column === "position", fromZero: state.column !== "position", lowest: state.column === "position" ? 1 : null });
+    note.textContent = chartDays.length === 1 ? "Only one day of history so far: each club shows as a single dot. Lines appear from the second day." : `${chartDays.length} days of history, ${formatDay(chartDays[0])} to ${formatDay(chartDays.at(-1))}.`;
+    table_.replaceChildren(state.selected.length
+      ? tableView(["Day", ...data.map((s) => s.label)], chartDays.map((d, i) => [formatShortDay(d), ...data.map((s) => (s.values[i] == null ? "–" : info.format(s.values[i])))]))
       : "");
   }
   function toggle(id) {
@@ -65,15 +83,22 @@ function overTime(rows) {
     draw();
   }
 
-  const valueSelect = el("select", { onchange: (e) => { state.column = e.target.value; draw(); } }, COLUMNS.map((c) => el("option", { value: c.key }, c.label)));
+  const valueSelect = el("select", { onchange: (e) => {
+    const wasLeague = isLeague(state.column);
+    state.column = e.target.value;
+    if (isLeague(state.column) !== wasLeague) state.selected = defaultsFor(isLeague(state.column)); // different kind of item: start from that kind's favourites
+    draw();
+  } },
+    el("optgroup", { label: "Market values" }, MARKET_VALUES.map((c) => el("option", { value: c.key }, c.label))),
+    LEAGUE_VALUES.length ? el("optgroup", { label: "League table values" }, LEAGUE_VALUES.map((c) => el("option", { value: c.key }, c.label))) : null);
   const marketSelect = el("select", { onchange: (e) => { state.market = e.target.value; draw(); } }, MARKETS.map((m) => el("option", { value: m.id }, m.label)));
+  marketControl.append(marketSelect);
   draw();
   return el("section", { class: "card", "aria-labelledby": "over-time" },
     el("h2", { id: "over-time" }, "Every value over the days"),
-    el("p", { class: "muted" }, "Pick a value and the clubs to compare (up to 8). The line follows each club day by day; hover or use the arrow keys to read a day."),
-    el("div", { class: "controls" },
-      el("label", { class: "control" }, "Value", valueSelect), el("label", { class: "control" }, "Add clubs from the market", marketSelect)),
-    chips, picked, chart, note, table);
+    el("p", { class: "muted" }, "Pick a value (a market price or a league table number) and the clubs to compare, up to 8. The line follows each club day by day; hover or use the arrow keys to read a day."),
+    el("div", { class: "controls" }, el("label", { class: "control" }, "Value", valueSelect), marketControl),
+    chips, picked, chart, note, table_);
 }
 
 // ---------- the five findings ----------
@@ -156,7 +181,7 @@ try {
   const all = days(rows);
   render(app, offlineNotice(),
     el("div", { class: "notice", role: "status" }, `Built from ${everyRow.length} rows: ${all.length} day${all.length === 1 ? "" : "s"} of history (${formatDay(all[0])} to ${formatDay(all.at(-1))}).`),
-    overTime(rows), findings(rows));
+    overTime(rows, everyRow), findings(rows));
 } catch (error) {
   showError(app, error);
 }

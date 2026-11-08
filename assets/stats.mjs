@@ -152,6 +152,7 @@ export function leagueTable(rows) {
       goals_for: r.goals_for, goals_against: r.goals_against, goal_difference: r.goal_difference, points: r.points,
       ppg: per(r.points, r.played), goals_per_game: per(r.goals_for, r.played), conceded_per_game: per(r.goals_against, r.played), win_rate: per(r.won, r.played),
       move: old && old.position != null && r.position != null ? old.position - r.position : null, // + means up the table
+      pointsChange: old && old.points != null && r.points != null ? r.points - old.points : null, // points gained since the previous table
     };
   }).sort((a, b) => (a.position ?? 99) - (b.position ?? 99) || (a.club < b.club ? -1 : 1));
   return { day, previous, days: all, list };
@@ -171,4 +172,18 @@ export function clubMarkets(rows, club) {
 export function clubPoints(rows, club) {
   const table = standingsRows(rows).filter((r) => r.item === club).sort((a, b) => (a.date < b.date ? -1 : 1));
   return { days: table.map((r) => r.date), points: table.map((r) => r.points), positions: table.map((r) => r.position) };
+}
+
+// The chart of one league table value over the days, one line per club (days = the days that have a table).
+export function leagueSeries(rows, itemIds, column) {
+  const table = standingsRows(rows);
+  const all = [...new Set(table.map((r) => r.date))].sort();
+  return {
+    days: all,
+    series: itemIds.map((id) => {
+      const byDay = new Map(table.filter((r) => r.item_id === id).map((r) => [r.date, r[column]]));
+      const first = table.find((r) => r.item_id === id);
+      return { id, label: first ? `${first.item} (League table)` : id, values: all.map((d) => byDay.get(d) ?? null) };
+    }),
+  };
 }

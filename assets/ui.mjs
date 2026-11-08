@@ -47,8 +47,21 @@ export const COLUMNS = [
   { key: "volume_24h", label: "24h volume", help: "Traded in the last 24 hours", format: money },
   { key: "liquidity", label: "Liquidity", help: "Value of the waiting orders", format: money },
 ];
-export const columnInfo = (key) => COLUMNS.find((c) => c.key === key);
+export const columnInfo = (key) => COLUMNS.find((c) => c.key === key) ?? LEAGUE_COLUMNS.find((c) => c.key === key);
 
+const whole = (v) => (v == null ? DASH : String(v));
+// The league table columns of history.csv (rows of the "standings" source).
+export const LEAGUE_COLUMNS = [
+  { key: "position", label: "Pos", help: "Position in the league table", format: whole },
+  { key: "played", label: "Played", help: "Games played", format: whole },
+  { key: "won", label: "Won", help: "Games won", format: whole },
+  { key: "drawn", label: "Drawn", help: "Games drawn", format: whole },
+  { key: "lost", label: "Lost", help: "Games lost", format: whole },
+  { key: "goals_for", label: "GF", help: "Goals for (scored)", format: whole },
+  { key: "goals_against", label: "GA", help: "Goals against (conceded)", format: whole },
+  { key: "goal_difference", label: "GD", help: "Goal difference (GF minus GA)", format: (v) => (v == null ? DASH : signed(v)) },
+  { key: "points", label: "Pts", help: "League points (3 for a win, 1 for a draw)", format: whole },
+];
 export function ordinal(n) {
   const mod100 = n % 100;
   if (mod100 >= 11 && mod100 <= 13) return `${n}th`;

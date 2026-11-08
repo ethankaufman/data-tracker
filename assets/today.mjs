@@ -1,9 +1,12 @@
 import { loadData } from "./data.mjs";
 import { MARKETS, marketLabel, moves, latestAndPrevious, rowsOn, leagueTable } from "./stats.mjs";
-import { el, startPage, render, showError, offlineNotice, pct, pp, formatDay, formatRunTime, changeCell, columnInfo } from "./ui.mjs";
+import { el, startPage, render, showError, offlineNotice, pct, pp, formatDay, formatRunTime, changeCell, columnInfo, signed } from "./ui.mjs";
 
 startPage();
 const app = document.getElementById("app");
+
+// status.json holds counts (an older saved copy may hold a list, so both are read).
+const number = (value) => (Array.isArray(value) ? value.length : value);
 
 function statCard(label, value, note) {
   return el("div", { class: "stat" }, el("div", { class: "label" }, label), el("div", { class: "value" }, value), note ? el("div", { class: "note" }, note) : null);
@@ -41,15 +44,29 @@ function movesCard(change) {
   return card;
 }
 
-function latestTable(rows, change) {
+function leagueTab(all) {
+  const table = leagueTable(all);
+  if (!table.list.length) return el("p", { class: "muted" }, "No league table in the data yet.");
+  const move = (m) => (m == null || m === 0 ? el("span", { class: "muted" }, "–") : el("span", {}, el("span", { class: m > 0 ? "arrow-up" : "arrow-down", "aria-hidden": "true" }, m > 0 ? "▲" : "▼"), ` ${Math.abs(m)}`));
+  return el("div", {}, el("p", { class: "muted small" }, `League table on ${formatDay(table.day)}. The change is the points gained${table.previous ? ` since ${formatDay(table.previous)}` : " (none yet)"}, and the places moved.`),
+    el("table", {},
+      el("thead", {}, el("tr", {}, el("th", {}, "Club"), ["Pos", "Played", "Won", "Drawn", "Lost", "GF", "GA", "GD", "Pts", "Points change", "Places moved"].map((h) => el("th", { class: "num" }, h)))),
+      el("tbody", {}, table.list.map((r) => el("tr", {},
+        el("td", {}, r.club), ...[r.position, r.played, r.won, r.drawn, r.lost, r.goals_for, r.goals_against].map((v) => el("td", { class: "num" }, v ?? "–")),
+        el("td", { class: "num" }, r.goal_difference == null ? "–" : signed(r.goal_difference)), el("td", { class: "num strong" }, r.points ?? "–"),
+        el("td", { class: "num" }, r.pointsChange == null ? "–" : r.pointsChange === 0 ? "0" : `+${r.pointsChange}`), el("td", { class: "num" }, move(r.move)))))));
+}
+
+function latestTable(rows, change, all) {
   const { latest } = latestAndPrevious(rows);
   const today = rowsOn(rows, latest);
   const card = el("div", { class: "card" }, el("h2", {}, "Latest values"), el("p", { class: "muted small" }, `Prices on ${formatDay(latest)}. The change is since ${change.previous ? formatDay(change.previous) : "the previous run (none yet)"}.`));
   const tabs = el("div", { class: "tabs", role: "tablist", "aria-label": "Market" });
   const holder = el("div", { class: "table-wrap", role: "tabpanel" });
-  const choices = [{ id: "all", label: "All markets" }, ...MARKETS];
+  const choices = [{ id: "all", label: "All markets" }, ...MARKETS, { id: "standings", label: "League table" }];
   function draw(id) {
     for (const t of tabs.children) t.setAttribute("aria-selected", String(t.dataset.id === id));
+    if (id === "standings") { holder.replaceChildren(leagueTab(all)); return; }
     const order = (r) => MARKETS.findIndex((m) => m.id === r.source);
     const list = today.filter((r) => id === "all" || r.source === id).sort((a, b) => (id === "all" ? order(a) - order(b) : 0) || (b.price ?? -1) - (a.price ?? -1) || (a.item < b.item ? -1 : 1));
     const showMarket = id === "all";
@@ -78,11 +95,11 @@ try {
     el("div", { class: "stats" },
       statCard("Items tracked", status.items, `${rowsOn(rows, change.latest).length} market prices + ${leagueTable(all).list.length} league table rows`),
       statCard("Days with data", status.days_with_success, `since ${formatDay(status.first_run_date)}`),
-      statCard("New today", status.new_today.length, "items that appeared"),
-      statCard("Gone today", status.gone_today.length, "items that disappeared")),
+      statCard("New today", number(status.new_today), "items that appeared"),
+      statCard("Gone today", number(status.gone_today), "items that disappeared")),
     sourcesTable(status),
     movesCard(change),
-    latestTable(rows, change));
+    latestTable(rows, change, all));
 } catch (error) {
   showError(app, error);
 }
