@@ -70,6 +70,7 @@ def test_status_file_keys_and_a_second_day(tmp_path):
     on_disk = json.loads((tmp_path / "status.json").read_text())
     assert on_disk == status
     assert set(status) == {"run_time", "first_run_date", "days_with_success", "items", "new_today", "gone_today", "sources"}
+    assert all(isinstance(status[k], int) for k in ("days_with_success", "items", "new_today", "gone_today"))
     assert status["days_with_success"] == 2
     assert status["items"] == 12  # 5 markets x 2 clubs + 2 league table rows
     assert [s["name"] for s in status["sources"]] == ["title", "relegation", "top4", "top6", "top10", "standings"]
@@ -101,7 +102,7 @@ def test_items_that_appear_and_disappear_are_listed(tmp_path):
     do_run(tmp_path, "2026-11-08", (0.5, 0.1), published=published)
     do_run(tmp_path, "2026-11-09", (0.5, 0.1), fail=("title",), published=published)
     status = json.loads((tmp_path / "status.json").read_text())
-    assert status["gone_today"] == ["title:arsenal", "title:chelsea"]
+    assert status["gone_today"] == 2 and status["new_today"] == 0  # counts; the issue names the items
     assert "title:arsenal" in published[1][1]
 
 

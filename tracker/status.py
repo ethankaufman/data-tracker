@@ -26,8 +26,8 @@ def build_status(run_time, raw_dir, rows, comparison, results):
         "first_run_date": days[0] if days else None,
         "days_with_success": len(days),
         "items": sum(1 for row in rows if row["date"] == latest),
-        "new_today": comparison["appeared"],
-        "gone_today": comparison["gone"],
+        "new_today": len(comparison["appeared"]),  # how many items appeared since the previous day
+        "gone_today": len(comparison["gone"]),  # how many items disappeared (the daily issue names them)
         "sources": sources,
     }
 
