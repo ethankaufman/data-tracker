@@ -1,10 +1,10 @@
 {
-  "run_time": "2026-11-08T19:30:50Z",
+  "run_time": "2026-11-08T20:09:52Z",
   "first_run_date": "2026-11-08",
   "days_with_success": 1,
   "items": 120,
-  "new_today": [],
-  "gone_today": [],
+  "new_today": 0,
+  "gone_today": 0,
   "sources": [
     {
       "name": "title",
