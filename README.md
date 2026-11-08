@@ -169,6 +169,16 @@ python3 -m http.server 8000
 then open http://localhost:8000. (Opening the files directly does not work: browsers only allow
 the data files to be loaded through a web server.)
 
+## Health check
+
+A second workflow (`.github/workflows/health.yml`) runs `python -m tracker.health` every day at 12:10 UTC,
+after the daily run. It reads `data/status.json` and the latest daily workflow runs and checks that the
+last run is less than 30 hours old, that the latest daily workflow run succeeded, that no source failed, and
+that there is still time to reach 7 days with data before the due date. If anything is wrong it opens a
+GitHub Issue labelled `health-check` that says what, and the check fails (so GitHub sends a
+notification). When everything is fine again the issue is closed. The daily issues (one per date, labelled
+`daily-report`) are separate and are not touched by this check.
+
 ## Tests
 
 ```
@@ -191,6 +201,7 @@ issue handling, and that the Trends numbers agree with the history file (this on
 | `tracker/status.py` | Builds `data/status.json` |
 | `tracker/report.py` | Writes the text of the daily issue |
 | `tracker/issues.py` | Opens today's issue, updates it on a second run, closes the previous day's |
+| `tracker/health.py` | The daily health check: is the pipeline running and are the sources working (`python -m tracker.health`) |
 | `tracker/run.py` | The daily run that ties the steps together (`python -m tracker.run`) |
 | `index.html`, `browse.html`, `table.html`, `trends.html`, `guide.html` | The pages of the site |
 | `assets/style.css` | The look shared by all pages |
@@ -210,6 +221,7 @@ issue handling, and that the Trends numbers agree with the history file (this on
 | `.gitignore` | Files git should not track (the local test environment and caches) |
 | `.github/workflows/daily.yml` | The daily run: download, build, issue, commit |
 | `.github/workflows/tests.yml` | Runs the tests on every push |
+| `.github/workflows/health.yml` | The daily health check, which opens an issue when something is wrong |
 | `data/raw/<date>/<source>.json.gz` | The raw answers, compressed, one folder per day |
 | `data/history.csv` | The history, one row per item per day |
 | `data/status.json` | Describes the latest run |
