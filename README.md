@@ -7,6 +7,8 @@ Once a day, a GitHub Action downloads the prices of Premier League prediction ma
 history with one row per item per day, opens a GitHub Issue listing what moved the most,
 and publishes the result to a website.
 
+**Live site:** https://ethankaufman.github.io/data-tracker/ (installable as an app, works offline)
+
 Project for Financial Data Analytics (Data Tracker Project).
 
 ## What is tracked
@@ -112,6 +114,41 @@ python -m tracker.history
 The history depends on the raw files alone, so this always gives the same `data/history.csv`.
 If a conversion rule changes, running it applies the change to every day.
 
+## The site
+
+Plain HTML, CSS and JavaScript (no build step), published with GitHub Pages from the `main` branch.
+The three pages load `data/status.json` and `data/history.csv` in the browser and do every
+calculation there. All pages share one navigation bar (`assets/ui.mjs`) and one stylesheet
+(`assets/style.css`: system fonts, an indigo header, and a colour-blind-checked chart palette; it
+follows the device's light or dark setting).
+
+| Page | What it shows |
+|---|---|
+| `index.html` (Today) | Time of the last run, the status of every source, the counts from `status.json` (items, days with data, new and gone), the biggest moves since the previous run, and the latest values of every item with their change since the previous run |
+| `browse.html` (Browse) | The latest values for every item. Filters for market, price range, spread and "traded in the last 24 hours", a search box for club names, sorting up and down on every numeric column, and a star on every item that saves it to a shortlist in the browser (it is still there after a reload) |
+| `trends.html` (Trends) | A chart of any numeric value over the days with a picker for the clubs, and five findings, each with a heading that states the result, a paragraph with the numbers and how they are computed, a chart, and the table behind the chart |
+
+The five findings on Trends: who is the title favourite; how far each market's prices are from a
+fair total; which price moved the most since the first run; the biggest one-day move; and which
+market is the hardest to trade (average spread). They are recomputed from `history.csv` every time
+the page loads, so they change as the history grows. The calculations live in `assets/stats.mjs`.
+A test (`tests/test_trends_numbers.py`) runs them with Node on a history file and compares every
+number with a separate calculation in Python, so the page cannot drift away from the history file.
+
+**Installable and offline.** `manifest.webmanifest` and `sw.js` (a service worker) make the site
+installable from the browser. When the computer is online, every page and data file is loaded from
+the network (and a copy is saved). When it is offline, the saved copies are used, so the site still
+opens and shows the last data it loaded.
+
+### Run the site on your own computer
+
+```
+python3 -m http.server 8000
+```
+
+then open http://localhost:8000. (Opening the files directly does not work: browsers only allow
+the data files to be loaded through a web server.)
+
 ## Tests
 
 ```
@@ -120,8 +157,8 @@ pytest
 ```
 
 GitHub Actions runs the tests on every push. They cover the conversion of each source to the
-common columns, the move rule, the history logic, the issue handling, and a second run on the
-same day.
+common columns, the move rule, the history logic (including a second run on the same day), the
+issue handling, and that the Trends numbers agree with the history file (this one needs Node.js).
 
 ## Files
 
@@ -135,6 +172,18 @@ same day.
 | `tracker/report.py` | Writes the text of the daily issue |
 | `tracker/issues.py` | Opens today's issue, updates it on a second run, closes the previous day's |
 | `tracker/run.py` | The daily run that ties the steps together (`python -m tracker.run`) |
+| `index.html`, `browse.html`, `trends.html` | The three pages of the site |
+| `assets/style.css` | The look shared by all pages |
+| `assets/ui.mjs` | Shared page code: navigation bar, number formats, the shortlist, "Install app" button |
+| `assets/data.mjs` | Loads and parses `status.json` and `history.csv` |
+| `assets/stats.mjs` | Every calculation the pages show (moves, findings), as plain functions |
+| `assets/charts.mjs` | The line, bar and column charts, tooltips and "show the numbers" tables |
+| `assets/today.mjs`, `assets/browse.mjs`, `assets/trends.mjs` | The code of each page |
+| `manifest.webmanifest` | Web app manifest (name, colours, icons) so the site can be installed |
+| `sw.js` | Service worker: saves copies of the pages and data so the site opens offline |
+| `icons/` | The app icons (`icon.svg`, and PNGs made by `tools/make_icons.py`) |
+| `tools/make_icons.py` | Draws the PNG app icons with only the Python standard library |
+| `tools/trends_numbers.mjs` | Prints the numbers the pages compute from a history file (used by a test) |
 | `tests/` | The pytest suite |
 | `.github/workflows/daily.yml` | The daily run: download, build, issue, commit |
 | `.github/workflows/tests.yml` | Runs the tests on every push |
