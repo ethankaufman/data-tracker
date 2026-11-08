@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guide · PL Market Tracker</title>
+  <meta name="description" content="Every number on the PL Market Tracker explained in plain language: prices, spreads, volume, the league table, and what each page and chart shows.">
+  <meta name="theme-color" content="#2a1b5e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="guide">
+  <main id="main" class="prose">
+    <div class="page-head">
+      <h1>Guide</h1>
+      <p>Every number on this site, explained in plain language. No betting or finance knowledge needed.</p>
+    </div>
+
+    <section class="card">
+      <h2>Contents</h2>
+      <ol class="toc">
+        <li><a href="#what">What this site is</a></li>
+        <li><a href="#prices">How to read a price</a></li>
+        <li><a href="#markets">The five markets</a></li>
+        <li><a href="#glossary">Every number explained</a></li>
+        <li><a href="#table">The league table</a></li>
+        <li><a href="#pages">Page by page</a></li>
+        <li><a href="#findings">The five findings on Trends</a></li>
+        <li><a href="#data">Where the data comes from</a></li>
+        <li><a href="#faq">Good to know</a></li>
+      </ol>
+    </section>
+
+    <section class="card" aria-labelledby="what">
+      <h2 id="what">What this site is</h2>
+      <p>Every day this site records two things about the Premier League season: what a <strong>prediction market</strong> thinks will happen (who wins the title, who goes down, who finishes in the top 4, 6 and 10), and the <strong>league table</strong>. It keeps every past day, so you can see how opinion moves as the season goes on.</p>
+      <p>It is a fan and class project. It is not betting advice and is not connected to Polymarket, ESPN or the Premier League.</p>
+    </section>
+
+    <section class="card" aria-labelledby="prices">
+      <h2 id="prices">How to read a price</h2>
+      <p>In a prediction market, people buy and sell "Yes" shares for a question such as <em>"Will Arsenal win the title?"</em>. A Yes share pays $1 if it happens and nothing if it does not. So the price people agree on shows how likely they think it is.</p>
+      <div class="example"><strong>Example:</strong> a Yes share trading at $0.25 means the traders, putting real money behind their opinions, think there is about a <strong>25% chance</strong>. This site shows prices as percentages. <em>Price</em>, <em>chance</em> and <em>probability</em> all mean the same thing here.</div>
+      <p>A price is an opinion, not a promise. A club at 5% still wins the title one time in twenty, if the market is right.</p>
+    </section>
+
+    <section class="card" aria-labelledby="markets">
+      <h2 id="markets">The five markets</h2>
+      <p>Each market asks one question about every one of the 20 clubs.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Market</th><th scope="col">The question</th><th scope="col">The 20 prices should add up to about</th></tr></thead>
+        <tbody>
+          <tr><td>Title</td><td>Will the club win the league?</td><td>100% (exactly one club wins)</td></tr>
+          <tr><td>Relegation</td><td>Will the club be relegated?</td><td>300% (three clubs go down)</td></tr>
+          <tr><td>Top 4</td><td>Will it finish in the top 4 places?</td><td>400%</td></tr>
+          <tr><td>Top 6</td><td>Will it finish in the top 6 places?</td><td>600%</td></tr>
+          <tr><td>Top 10</td><td>Will it finish in the top 10 places?</td><td>1000%</td></tr>
+        </tbody>
+      </table></div>
+      <p>An <strong>item</strong> on this site is one club in one market, for example "Arsenal, Title".</p>
+    </section>
+
+    <section class="card" aria-labelledby="glossary">
+      <h2 id="glossary">Every number explained</h2>
+      <h3>Market numbers</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Number</th><th scope="col">What it means</th><th scope="col">How to read it</th></tr></thead>
+        <tbody>
+          <tr><td>Price (Chance)</td><td>The price of a Yes share, shown as a percentage: the market's chance for the event.</td><td>Higher means the market thinks it is more likely.</td></tr>
+          <tr><td>Best bid</td><td>The highest price a buyer is offering right now.</td><td>What you could sell a share for straight away.</td></tr>
+          <tr><td>Best ask</td><td>The lowest price a seller is asking right now.</td><td>What you would have to pay to buy straight away.</td></tr>
+          <tr><td>Spread</td><td>Best ask minus best bid, in percentage points.</td><td>A small spread means buyers and sellers agree, so the price is solid. A big spread means few orders are waiting, so the price is more of a guess.</td></tr>
+          <tr><td>Last trade</td><td>The price of the most recent trade.</td><td>It can be older than the current price if nobody has traded lately.</td></tr>
+          <tr><td>Volume</td><td>Total dollars traded in this club's market since it opened.</td><td>A rough measure of how much interest there has been.</td></tr>
+          <tr><td>24h volume</td><td>Dollars traded in the last 24 hours.</td><td>A dash (–) means the source reported none.</td></tr>
+          <tr><td>Liquidity</td><td>The dollars of orders waiting in the market.</td><td>More liquidity means a trade moves the price less.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Changes</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Number</th><th scope="col">What it means</th><th scope="col">How to read it</th></tr></thead>
+        <tbody>
+          <tr><td>pp (percentage points)</td><td>The unit for a change in a percentage.</td><td>A price going from 30% to 35% is <strong>+5 pp</strong> (not "+5%", and not +16.7%).</td></tr>
+          <tr><td>Change</td><td>How much a price moved since the previous day with data, in pp. ▲ is up and ▼ is down.</td><td>The arrow and the + or − sign say the direction; the colour is just extra.</td></tr>
+          <tr><td>Biggest moves</td><td>The 10 prices that changed the most since the previous run, ranked by size, up or down.</td><td>The size is what counts: a −8 pp move ranks above a +5 pp move.</td></tr>
+          <tr><td>Overround</td><td>How far a market's prices add up above (or below) the fair total in the table above.</td><td>A title market adding up to 101% has an overround of 1%.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Counts on the Today page</h3>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Number</th><th scope="col">What it means</th></tr></thead>
+        <tbody>
+          <tr><td>Items tracked</td><td>Rows in the latest day: the market prices (5 markets × 20 clubs) plus the 20 league table rows.</td></tr>
+          <tr><td>Days with data</td><td>How many different dates have a saved download. The more days, the more the trends mean.</td></tr>
+          <tr><td>New today</td><td>Items that appeared since the previous day (for example a new market).</td></tr>
+          <tr><td>Gone today</td><td>Items that were there the previous day but are not now.</td></tr>
+          <tr><td>Source status</td><td>✓ OK means that download worked. ✕ Failed means it did not, so there are no rows from it for that day. The other sources still update.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section class="card" aria-labelledby="table">
+      <h2 id="table">The league table</h2>
+      <p>A win is worth 3 points, a draw 1 and a loss 0. Positions come from the source, ordered by points.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Column</th><th scope="col">Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Pos</td><td>Position in the table.</td></tr>
+          <tr><td>Move</td><td>Places gained (▲) or lost (▼) since the previous day with a table. The table only changes after matches, so most days show a dash.</td></tr>
+          <tr><td>P</td><td>Played: games so far.</td></tr>
+          <tr><td>W, D, L</td><td>Won, drawn and lost.</td></tr>
+          <tr><td>GF, GA</td><td>Goals for (scored) and goals against (conceded).</td></tr>
+          <tr><td>GD</td><td>Goal difference: GF minus GA.</td></tr>
+          <tr><td>Pts</td><td>Points.</td></tr>
+          <tr><td>PPG</td><td>Points per game: points divided by games played. A fairer way to compare clubs that have played a different number of games.</td></tr>
+          <tr><td>Title, Relegation</td><td>The market's chance of that club winning the title or going down, next to its real position.</td></tr>
+        </tbody>
+      </table></div>
+      <p>Click a club's name to open its panel: its record, goals per game, every market price with the change since the previous day, and charts of its market prices and points over the days.</p>
+    </section>
+
+    <section class="card" aria-labelledby="pages">
+      <h2 id="pages">Page by page</h2>
+      <h3>Today</h3>
+      <ul>
+        <li><strong>Last run:</strong> when the daily update last ran (in UTC and in your own time), and which day the data is from.</li>
+        <li><strong>Counts and sources:</strong> explained above.</li>
+        <li><strong>Biggest moves:</strong> the 10 biggest price changes since the previous run. On the first day there is nothing to compare with.</li>
+        <li><strong>Latest values:</strong> every price with its change since the previous run. Use the tabs to switch market.</li>
+      </ul>
+      <h3>Browse</h3>
+      <ul>
+        <li><strong>Search</strong> matches club names. <strong>Filters</strong> narrow by market, price range, spread, and whether the item traded in the last 24 hours.</li>
+        <li><strong>Sort</strong> by clicking any column heading. Click again to flip between high-to-low and low-to-high.</li>
+        <li><strong>Stars</strong> save an item to your shortlist. It is stored in this browser on this device (there are no accounts), so it is still there when you come back. Tick "Shortlist only" to see just your starred items.</li>
+      </ul>
+      <h3>Table</h3>
+      <ul>
+        <li>The full league table, sortable by every column, with a search box. Click a club for its detailed panel. The address changes to include the club, so you can share a link straight to it.</li>
+      </ul>
+      <h3>Trends</h3>
+      <ul>
+        <li><strong>Every value over the days:</strong> pick a value (price, spread, volume...) and up to 8 clubs. Hover over the chart, or use the left and right arrow keys, to read each day.</li>
+        <li><strong>Findings:</strong> five short reports, explained next. Every number is worked out in your browser from the history file.</li>
+        <li><strong>Show the numbers:</strong> under every chart, a table with the exact figures.</li>
+      </ul>
+      <h3>Install and offline</h3>
+      <p>The site can be installed like an app (look for "Install app" at the top, or use your browser's install option). Offline, it still opens and shows the last data it loaded.</p>
+    </section>
+
+    <section class="card" aria-labelledby="findings">
+      <h2 id="findings">The five findings on Trends</h2>
+      <ol>
+        <li><strong>The title favourite.</strong> Which club the title market rates highest, and how much of the 100% of title chances the top three hold between them.</li>
+        <li><strong>How fair the markets are.</strong> For each market, the sum of its prices against the fair total (100% for the title, 300% for relegation, and so on). The gap is the overround. A bigger gap usually means a thinner, less certain market.</li>
+        <li><strong>Biggest change since the first run.</strong> The item whose price has moved most since the first day, in pp, with how many items rose and fell. It fills in from day two.</li>
+        <li><strong>The biggest one-day move.</strong> Between each pair of days, the single biggest price change, and the biggest of all. It fills in from day two.</li>
+        <li><strong>The hardest market to trade.</strong> The average spread in each market. The wider the spread, the less the prices can be trusted to the decimal.</li>
+      </ol>
+      <p>Each finding says exactly how it is computed from the history file.</p>
+    </section>
+
+    <section class="card" aria-labelledby="data">
+      <h2 id="data">Where the data comes from</h2>
+      <ul>
+        <li><strong>Market prices</strong> come from <a href="https://polymarket.com">Polymarket</a>'s public data, one download per market.</li>
+        <li><strong>The league table</strong> comes from <a href="https://www.espn.com/soccer/standings/_/league/eng.1">ESPN</a>'s public feed.</li>
+        <li>Once a day, an automated job (on GitHub) downloads all six, saves the raw files, rebuilds the history, writes a daily report on GitHub, and updates this site. The files the site reads are <a href="data/history.csv">data/history.csv</a> and <a href="data/status.json">data/status.json</a>. The code and a full description of every column are in the <a href="https://github.com/ethankaufman/data-tracker">project's repository</a>.</li>
+      </ul>
+    </section>
+
+    <section class="card" aria-labelledby="faq">
+      <h2 id="faq">Good to know</h2>
+      <h3>Why do a market's prices add up to more than they should?</h3>
+      <p>Traders and sellers keep a small cushion, and thinly traded markets are rough. That extra is the overround (see above). It is normal and it is why finding 2 exists.</p>
+      <h3>Why do some clubs show 0.05%?</h3>
+      <p>That is about the lowest price the market lists. It means "the market sees almost no chance", not exactly zero.</p>
+      <h3>Why is a spread so wide in some markets?</h3>
+      <p>Less popular markets (often the Top 6 and Top 10 ones) can have very few orders waiting. With a large gap between buyers and sellers, the listed price is only a rough guide.</p>
+      <h3>Why is a value a dash (–)?</h3>
+      <p>The source did not report it that day, for example no trades in the last 24 hours.</p>
+      <h3>Why didn't the league table change today?</h3>
+      <p>The table only changes after matches, and there are quiet days and international breaks. Market prices can move on any day, which is why the site tracks both.</p>
+      <h3>Is this betting advice?</h3>
+      <p>No. It shows what a market thinks, which can be wrong.</p>
+    </section>
+  </main>
+  <script type="module">
+    import { startPage } from "./assets/ui.mjs";
+    startPage();
+  </script>
+</body>
+</html>
