@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Table · PL Market Tracker</title>
+  <meta name="description" content="The full Premier League table with every club's record, goals and points, and what the market thinks of each club.">
+  <meta name="theme-color" content="#2a1b5e">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body data-page="table">
+  <main id="main">
+    <div class="page-head">
+      <h1>League table</h1>
+      <p>The full Premier League table, next to what the market thinks. Click a club's name to see all of its numbers: record, goals, points per game, every market price and how they have moved.</p>
+    </div>
+    <div id="app"><p class="muted">Loading the table…</p></div>
+    <p class="footer">League table from <a href="https://www.espn.com/soccer/standings/_/league/eng.1">ESPN</a>'s public feed. Not sure what a column means? See the <a href="guide.html#table">guide</a>.</p>
+  </main>
+  <script type="module" src="assets/table.mjs"></script>
+</body>
+</html>

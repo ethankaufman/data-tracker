@@ -133,6 +133,27 @@ input[type="search"] { min-width: 220px; }
 button.plain { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--ink-3); border-radius: 8px; padding: 7px 12px; cursor: pointer; min-height: 38px; }
 button.plain:hover { background: var(--brand-soft); }
 
+/* ---------- league table ---------- */
+td.strong { font-weight: 700; }
+tr.selected { background: var(--brand-soft); }
+.club-link { all: unset; cursor: pointer; font-weight: 600; text-decoration: underline; text-decoration-color: var(--ink-3); text-underline-offset: 3px; border-radius: 4px; }
+.club-link:hover { text-decoration-color: var(--ink); }
+.club-link:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+h3.sub { font-size: 1.05rem; margin: 20px 0 4px; }
+
+/* ---------- guide ---------- */
+h2[id], h3[id] { scroll-margin-top: 72px; }
+.prose p, .prose li { max-width: 75ch; }
+.prose h2 { margin-bottom: 8px; }
+.prose h3 { font-size: 1.05rem; margin: 18px 0 4px; }
+.prose ul, .prose ol { padding-left: 1.3rem; margin: 0.5rem 0; }
+.prose li { margin: 4px 0; }
+.toc { columns: 2 260px; column-gap: 32px; padding-left: 1.2rem; margin: 8px 0 0; }
+.toc li { margin: 4px 0; break-inside: avoid; }
+.prose table td, .prose table th { white-space: normal; vertical-align: top; }
+.prose td:first-child { white-space: nowrap; font-weight: 600; }
+.example { background: var(--brand-soft); border-radius: 10px; padding: 10px 14px; margin: 10px 0; max-width: 75ch; }
+
 /* ---------- moves list ---------- */
 .moves { list-style: none; padding: 0; margin: 12px 0 0; }
 .moves li { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--line); }

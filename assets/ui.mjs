@@ -49,6 +49,13 @@ export const COLUMNS = [
 ];
 export const columnInfo = (key) => COLUMNS.find((c) => c.key === key);
 
+export function ordinal(n) {
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${n}th`;
+  return `${n}${({ 1: "st", 2: "nd", 3: "rd" })[n % 10] ?? "th"}`;
+}
+export const signed = (n) => (n > 0 ? `+${n}` : n < 0 ? `−${Math.abs(n)}` : "0");
+
 export function formatDay(day) {
   const [y, m, d] = day.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
@@ -94,7 +101,9 @@ export function toggleShortlist(itemId) {
 const PAGES = [
   ["index.html", "Today", "today"],
   ["browse.html", "Browse", "browse"],
+  ["table.html", "Table", "table"],
   ["trends.html", "Trends", "trends"],
+  ["guide.html", "Guide", "guide"],
 ];
 export function startPage() {
   const current = document.body.dataset.page;
