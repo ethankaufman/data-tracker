@@ -46,6 +46,8 @@ function build(rows, status) {
   const marketSelect = el("select", { onchange: (e) => { state.market = e.target.value; draw(); } },
     el("option", { value: "all" }, "All markets"), MARKETS.map((m) => el("option", { value: m.id }, m.label)));
   const search = el("input", { type: "search", placeholder: "e.g. Arsenal", autocomplete: "off", oninput: (e) => { state.search = e.target.value; draw(); } });
+  const fromLink = new URLSearchParams(location.search).get("q"); // e.g. browse.html?q=Arsenal
+  if (fromLink) { state.search = fromLink; search.value = fromLink; }
   const num = (key, placeholder) => el("input", { type: "number", min: "0", max: "100", step: "any", placeholder, oninput: (e) => { state[key] = e.target.value; draw(); } });
   const minPrice = num("minPrice", "0"), maxPrice = num("maxPrice", "100"), maxSpread = num("maxSpread", "100");
   const traded = el("input", { type: "checkbox", onchange: (e) => { state.tradedOnly = e.target.checked; draw(); } });

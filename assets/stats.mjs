@@ -10,10 +10,16 @@ export const MARKETS = [
 ];
 export const marketLabel = (id) => MARKETS.find((m) => m.id === id)?.label ?? id;
 
+// history.csv holds two kinds of rows: market prices (the five sources above) and league table rows
+// (source "standings"). The market calculations below only look at the first kind.
+export const isMarket = (row) => MARKETS.some((m) => m.id === row.source);
+export const marketRows = (rows) => rows.filter(isMarket);
+export const standingsRows = (rows) => rows.filter((row) => row.source === "standings");
+
 export const round6 = (x) => Math.round(x * 1e6) / 1e6;
 
 export function days(rows) {
-  return [...new Set(rows.map((r) => r.date))].sort();
+  return [...new Set(marketRows(rows).map((r) => r.date))].sort();
 }
 export const rowsOn = (rows, day) => rows.filter((r) => r.date === day);
 
@@ -125,4 +131,44 @@ export function series(rows, itemIds, column) {
     const first = rows.find((r) => r.item_id === id);
     return { id, label: first ? `${first.item} (${marketLabel(first.source)})` : id, values: all.map((d) => byDay.get(d) ?? null) };
   });
+}
+
+// ---------- the league table ----------
+
+// The latest league table, with the extra figures worked out from it, and each club's move since
+// the previous day that has a table.
+export function leagueTable(rows) {
+  const table = standingsRows(rows);
+  const all = [...new Set(table.map((r) => r.date))].sort();
+  const day = all.at(-1) ?? null;
+  const previous = all.length > 1 ? all.at(-2) : null;
+  const before = new Map(table.filter((r) => r.date === previous).map((r) => [r.item, r]));
+  const per = (a, b) => (b ? a / b : null);
+  const list = table.filter((r) => r.date === day).map((r) => {
+    const old = before.get(r.item);
+    return {
+      club: r.item, item_id: r.item_id,
+      position: r.position, played: r.played, won: r.won, drawn: r.drawn, lost: r.lost,
+      goals_for: r.goals_for, goals_against: r.goals_against, goal_difference: r.goal_difference, points: r.points,
+      ppg: per(r.points, r.played), goals_per_game: per(r.goals_for, r.played), conceded_per_game: per(r.goals_against, r.played), win_rate: per(r.won, r.played),
+      move: old && old.position != null && r.position != null ? old.position - r.position : null, // + means up the table
+    };
+  }).sort((a, b) => (a.position ?? 99) - (b.position ?? 99) || (a.club < b.club ? -1 : 1));
+  return { day, previous, days: all, list };
+}
+
+// One club's market prices on the latest market day, with the change since the previous day.
+export function clubMarkets(rows, club) {
+  const { latest } = latestAndPrevious(rows);
+  const change = moves(rows).changeById;
+  return MARKETS.map((m) => {
+    const row = marketRows(rows).find((r) => r.date === latest && r.source === m.id && r.item === club);
+    return row ? { market: m, row, change: change.get(row.item_id) ?? null } : null;
+  }).filter(Boolean);
+}
+
+// A club's points on each day that has a league table (for the "points over the days" chart).
+export function clubPoints(rows, club) {
+  const table = standingsRows(rows).filter((r) => r.item === club).sort((a, b) => (a.date < b.date ? -1 : 1));
+  return { days: table.map((r) => r.date), points: table.map((r) => r.points), positions: table.map((r) => r.position) };
 }

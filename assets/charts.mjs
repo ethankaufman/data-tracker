@@ -140,7 +140,7 @@ export function lineChart(host, { days, series, format, axisFormat = format, day
     root.append(overlay);
     body.replaceChildren(root);
   });
-  host.append(legend(series));
+  if (series.length > 1) host.append(legend(series)); // one line needs no legend: the heading names it
 }
 
 // ----- horizontal bars: one bar per row. rows: [{label, value, color, detail}] -----

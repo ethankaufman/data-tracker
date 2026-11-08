@@ -152,10 +152,10 @@ function findings(rows) {
 }
 
 try {
-  const { rows } = await loadData();
+  const { rows, all: everyRow } = await loadData();
   const all = days(rows);
   render(app, offlineNotice(),
-    el("div", { class: "notice", role: "status" }, `Built from ${rows.length} rows: ${all.length} day${all.length === 1 ? "" : "s"} of history (${formatDay(all[0])} to ${formatDay(all.at(-1))}).`),
+    el("div", { class: "notice", role: "status" }, `Built from ${everyRow.length} rows: ${all.length} day${all.length === 1 ? "" : "s"} of history (${formatDay(all[0])} to ${formatDay(all.at(-1))}).`),
     overTime(rows), findings(rows));
 } catch (error) {
   showError(app, error);

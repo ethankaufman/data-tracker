@@ -1,5 +1,5 @@
 import { loadData } from "./data.mjs";
-import { MARKETS, marketLabel, moves, latestAndPrevious, rowsOn } from "./stats.mjs";
+import { MARKETS, marketLabel, moves, latestAndPrevious, rowsOn, leagueTable } from "./stats.mjs";
 import { el, startPage, render, showError, offlineNotice, pct, pp, formatDay, formatRunTime, changeCell, columnInfo } from "./ui.mjs";
 
 startPage();
@@ -10,14 +10,15 @@ function statCard(label, value, note) {
 }
 
 function sourcesTable(status) {
-  const titles = Object.fromEntries(MARKETS.map((m) => [m.id, m.label]));
+  const titles = Object.fromEntries(MARKETS.map((m) => [m.id, `${m.label} market`]));
+  titles.standings = "League table";
   return el("div", { class: "card" },
     el("h2", {}, "Sources"),
     el("p", { class: "muted small" }, "Each market is downloaded separately. If one fails, the others still update."),
     el("div", { class: "table-wrap" }, el("table", {},
       el("thead", {}, el("tr", {}, ["Source", "Status", "Items", "Details"].map((h, i) => el("th", { class: i === 2 ? "num" : null }, h)))),
       el("tbody", {}, status.sources.map((s) => el("tr", {},
-        el("td", {}, `${titles[s.name] ?? s.name} market`),
+        el("td", {}, titles[s.name] ?? s.name),
         el("td", {}, s.ok ? el("span", { class: "badge ok" }, "✓ OK") : el("span", { class: "badge fail" }, "✕ Failed")),
         el("td", { class: "num" }, s.count),
         el("td", { class: "muted" }, s.error ?? ""))))))
@@ -69,13 +70,13 @@ function latestTable(rows, change) {
 }
 
 try {
-  const { status, rows } = await loadData();
+  const { status, rows, all } = await loadData();
   const change = moves(rows);
   render(app,
     offlineNotice(),
     el("div", { class: "notice", role: "status" }, el("strong", {}, "Last run: "), formatRunTime(status.run_time), ` · data from ${formatDay(change.latest)}`),
     el("div", { class: "stats" },
-      statCard("Items tracked", status.items, "clubs × markets"),
+      statCard("Items tracked", status.items, `${rowsOn(rows, change.latest).length} market prices + ${leagueTable(all).list.length} league table rows`),
       statCard("Days with data", status.days_with_success, `since ${formatDay(status.first_run_date)}`),
       statCard("New today", status.new_today.length, "items that appeared"),
       statCard("Gone today", status.gone_today.length, "items that disappeared")),

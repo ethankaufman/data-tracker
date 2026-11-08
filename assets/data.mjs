@@ -1,6 +1,11 @@
 // Loading and reading the two data files: data/status.json and data/history.csv.
 
-export const NUMERIC = ["price", "best_bid", "best_ask", "spread", "last_trade", "volume_total", "volume_24h", "liquidity"];
+import { marketRows, standingsRows } from "./stats.mjs";
+
+export const NUMERIC = [
+  "price", "best_bid", "best_ask", "spread", "last_trade", "volume_total", "volume_24h", "liquidity",
+  "position", "played", "won", "drawn", "lost", "goals_for", "goals_against", "goal_difference", "points",
+];
 
 // Split CSV text into rows of cells. Handles quoted cells ("a, b" and "" for a quote).
 export function parseCsv(text) {
@@ -50,5 +55,7 @@ async function fetchText(path) {
 
 export async function loadData() {
   const [statusText, historyText] = await Promise.all([fetchText("data/status.json"), fetchText("data/history.csv")]);
-  return { status: JSON.parse(statusText), rows: parseHistory(historyText) };
+  const all = parseHistory(historyText);
+  // all = every row of history.csv; rows = the market prices; standings = the league table rows
+  return { status: JSON.parse(statusText), all, rows: marketRows(all), standings: standingsRows(all) };
 }
