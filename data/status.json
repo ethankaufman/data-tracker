@@ -1,8 +1,8 @@
 {
-  "run_time": "2026-11-08T19:18:09Z",
+  "run_time": "2026-11-08T19:30:50Z",
   "first_run_date": "2026-11-08",
   "days_with_success": 1,
-  "items": 100,
+  "items": 120,
   "new_today": [],
   "gone_today": [],
   "sources": [
@@ -28,6 +28,11 @@
     },
     {
       "name": "top10",
+      "ok": true,
+      "count": 20
+    },
+    {
+      "name": "standings",
       "ok": true,
       "count": 20
     }
