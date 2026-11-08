@@ -89,8 +89,8 @@ The market columns (`price` to `updated_at`) are empty on `standings` rows, and 
 
 Describes the latest run. Keys: `run_time` (UTC), `first_run_date` (the date of the earliest raw
 file), `days_with_success` (the number of different dates with a raw file), `items` (the number
-of items in the latest run), `new_today` and `gone_today` (the `item_id`s that appeared or
-disappeared since the previous day with data), and `sources`: one entry per source with `name`,
+of items in the latest run), `new_today` and `gone_today` (how many items appeared or
+disappeared since the previous day with data; the daily issue names them), and `sources`: one entry per source with `name`,
 `ok`, `count` (the number of items it gave) and, when it failed, `error`.
 
 ## The move rule
@@ -142,11 +142,11 @@ follows the device's light or dark setting).
 
 | Page | What it shows |
 |---|---|
-| `index.html` (Today) | Time of the last run, the status of every source, the counts from `status.json` (items, days with data, new and gone), the biggest moves since the previous run, and the latest values of every item with their change since the previous run |
-| `browse.html` (Browse) | The latest values for every item. Filters for market, price range, spread and "traded in the last 24 hours", a search box for club names, sorting up and down on every numeric column, and a star on every item that saves it to a shortlist in the browser (it is still there after a reload) |
+| `index.html` (Today) | Time of the last run, the status of every source, the counts from `status.json` (items, days with data, new and gone), the biggest moves since the previous run, and the latest values of every item with their change since the previous run (one tab per market, and a League table tab with the points gained and places moved) |
+| `browse.html` (Browse) | The latest values for every item: the market prices (all markets, or one), the league table, or everything together (all 120 items). Filters for market, price range, spread and "traded in the last 24 hours", a search box for club names, sorting up and down on every numeric column (the market columns and the league table columns), and a star on every item that saves it to a shortlist in the browser (it is still there after a reload) |
 | `table.html` (Table) | The full league table (position, played, won, drawn, lost, goals, goal difference, points, points per game, and the market's title and relegation chances), sortable on every column with a club search. Clicking a club opens its panel: record, goals per game, every market price with its change, and charts of its prices and points over the days. The address holds the club (`table.html?club=Arsenal`), so a link opens straight to it |
 | `guide.html` (Guide) | Plain-language explanation of every number on the site, the five markets, each page and each finding, where the data comes from, and common questions |
-| `trends.html` (Trends) | A chart of any numeric value over the days with a picker for the clubs, and five findings, each with a heading that states the result, a paragraph with the numbers and how they are computed, a chart, and the table behind the chart |
+| `trends.html` (Trends) | A chart of any numeric value over the days (any market value or any league table value) with a picker for the clubs, and five findings, each with a heading that states the result, a paragraph with the numbers and how they are computed, a chart, and the table behind the chart |
 
 The five findings on Trends: who is the title favourite; how far each market's prices are from a
 fair total; which price moved the most since the first run; the biggest one-day move; and which
@@ -205,6 +205,9 @@ issue handling, and that the Trends numbers agree with the history file (this on
 | `tools/make_icons.py` | Draws the PNG app icons with only the Python standard library |
 | `tools/trends_numbers.mjs` | Prints the numbers the pages compute from a history file (used by a test) |
 | `tests/` | The pytest suite |
+| `tracker/__init__.py` | Marks `tracker/` as a Python package (no code) |
+| `README.md` | This file |
+| `.gitignore` | Files git should not track (the local test environment and caches) |
 | `.github/workflows/daily.yml` | The daily run: download, build, issue, commit |
 | `.github/workflows/tests.yml` | Runs the tests on every push |
 | `data/raw/<date>/<source>.json.gz` | The raw answers, compressed, one folder per day |
