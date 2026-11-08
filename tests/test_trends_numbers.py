@@ -56,6 +56,9 @@ def sample_history(tmp_path):
             for c, club in enumerate(clubs):
                 price = round(0.05 + 0.04 * c + 0.013 * d * (1 if (c + s) % 2 else -1) + 0.002 * s, 4)
                 days[day][f"{source}:{club}"] = (price, round(0.01 * (s + 1) + 0.001 * c, 4))
+    for day in days:  # league table rows sit in the same file and must not change any market number
+        days[day]["standings:arsenal"] = (None, None)
+        days[day]["standings:chelsea"] = (None, None)
     del days["2026-11-12"]["relegation:fulham"]  # an item that disappears for one day
     days["2026-11-13"]["top4:fulham"] = (None, None)  # a price that is not reported
     days["2026-11-13"]["title:newclub"] = (0.01, 0.02)  # an item that appears

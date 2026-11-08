@@ -6,24 +6,31 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 
-from tracker.convert import convert_event
+from tracker.convert import convert
 
-API_URL = "https://gamma-api.polymarket.com/events?slug={slug}"
+MARKET_URL = "https://gamma-api.polymarket.com/events?slug={slug}"
+STANDINGS_URL = "https://site.api.espn.com/apis/v2/sports/soccer/eng.1/standings"
 
 
 @dataclass(frozen=True)
 class Source:
     name: str  # used in the raw file name and in the history "source" column
-    slug: str  # the Polymarket event that holds one market per team
     title: str  # plain-English description, used in the site and the README
+    url: str  # where the raw file is downloaded from
+
+
+def market(name, slug, title):
+    """A Polymarket event that holds one market per club."""
+    return Source(name, title, MARKET_URL.format(slug=slug))
 
 
 SOURCES = [
-    Source("title", "epl-2027-champion-20260701200428749", "Wins the Premier League title"),
-    Source("relegation", "premier-league-teams-relegated-2026-27", "Is relegated"),
-    Source("top4", "premier-league-top-4-finishers-2026-27", "Finishes in the top 4"),
-    Source("top6", "premier-league-top-6-finishers-2026-27", "Finishes in the top 6"),
-    Source("top10", "premier-league-top-10-finishers-2026-27", "Finishes in the top 10"),
+    market("title", "epl-2027-champion-20260701200428749", "Wins the Premier League title"),
+    market("relegation", "premier-league-teams-relegated-2026-27", "Is relegated"),
+    market("top4", "premier-league-top-4-finishers-2026-27", "Finishes in the top 4"),
+    market("top6", "premier-league-top-6-finishers-2026-27", "Finishes in the top 6"),
+    market("top10", "premier-league-top-10-finishers-2026-27", "Finishes in the top 10"),
+    Source("standings", "Premier League table", STANDINGS_URL),
 ]
 SOURCE_NAMES = [s.name for s in SOURCES]
 
@@ -56,11 +63,11 @@ def fetch_source(source, day, raw_dir, get=download):
     writes no raw file (an older file for the same day is left alone).
     """
     try:
-        body = get(API_URL.format(slug=source.slug))
+        body = get(source.url)
         # Check the answer is usable before keeping it.
-        count = len(convert_event(source.name, day, body))
+        count = len(convert(source.name, day, body))
         if count == 0:
-            raise ValueError("the answer holds no team markets")
+            raise ValueError("the answer holds no clubs")
     except Exception as error:
         return {"name": source.name, "ok": False, "count": 0, "error": f"{type(error).__name__}: {error}"}
 

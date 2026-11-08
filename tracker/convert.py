@@ -18,13 +18,40 @@ COLUMNS = [
     "volume_24h",
     "liquidity",
     "updated_at",
+    # league table columns: only filled on the rows of the "standings" source
+    "position",
+    "played",
+    "won",
+    "drawn",
+    "lost",
+    "goals_for",
+    "goals_against",
+    "goal_difference",
+    "points",
 ]
-NUMERIC_COLUMNS = ["price", "best_bid", "best_ask", "spread", "last_trade", "volume_total", "volume_24h", "liquidity"]
+STANDINGS_COLUMNS = ["position", "played", "won", "drawn", "lost", "goals_for", "goals_against", "goal_difference", "points"]
+NUMERIC_COLUMNS = [
+    "price", "best_bid", "best_ask", "spread", "last_trade", "volume_total", "volume_24h", "liquidity",
+] + STANDINGS_COLUMNS
+STANDINGS_SOURCE = "standings"
+# Which statistic in the ESPN standings answer fills each league table column.
+STANDINGS_STATS = {
+    "position": "rank",
+    "played": "gamesPlayed",
+    "won": "wins",
+    "drawn": "ties",
+    "lost": "losses",
+    "goals_for": "pointsFor",
+    "goals_against": "pointsAgainst",
+    "goal_difference": "pointDifferential",
+    "points": "points",
+}
 
 # Some markets spell a club differently. Map every spelling to one standard name.
 TEAM_NAMES = {
     "Brighton": "Brighton & Hove Albion",
     "Tottenham": "Tottenham Hotspur",
+    "AFC Bournemouth": "Bournemouth",
 }
 # Rows that are not clubs.
 NOT_TEAMS = {"Other"}
@@ -58,6 +85,35 @@ def yes_price(market):
     return to_number(prices[outcomes.index("Yes")])
 
 
+def blank_row(day, item_id, item, source):
+    """A row with every column present: numbers empty (None) until filled in."""
+    row = {column: None for column in COLUMNS}
+    row.update(date=day, item_id=item_id, item=item, source=source, updated_at="")
+    return row
+
+
+def convert(source, day, raw):
+    """Convert one raw file to history rows, whichever source it came from."""
+    return convert_standings(source, day, raw) if source == STANDINGS_SOURCE else convert_event(source, day, raw)
+
+
+def convert_standings(source, day, raw):
+    """Convert the raw ESPN league table to history rows: one row per club."""
+    data = json.loads(raw) if isinstance(raw, (bytes, str)) else raw
+    rows = []
+    for entry in data["children"][0]["standings"]["entries"]:
+        name = (entry["team"].get("displayName") or "").strip()
+        if not name:
+            continue
+        team = TEAM_NAMES.get(name, name)
+        stats = {stat["name"]: stat.get("value") for stat in entry.get("stats", [])}
+        row = blank_row(day, f"{source}:{slugify(team)}", team, source)
+        for column, key in STANDINGS_STATS.items():
+            row[column] = to_number(stats.get(key))
+        rows.append(row)
+    return rows
+
+
 def convert_event(source, day, raw):
     """Convert a raw Polymarket answer (bytes, str, or parsed JSON) to history rows.
 
@@ -74,21 +130,17 @@ def convert_event(source, day, raw):
         if not market.get("active") or market.get("closed"):
             continue
         team = TEAM_NAMES.get(title, title)
-        rows.append(
-            {
-                "date": day,
-                "item_id": f"{source}:{slugify(team)}",
-                "item": team,
-                "source": source,
-                "price": yes_price(market),
-                "best_bid": to_number(market.get("bestBid")),
-                "best_ask": to_number(market.get("bestAsk")),
-                "spread": to_number(market.get("spread")),
-                "last_trade": to_number(market.get("lastTradePrice")),
-                "volume_total": to_number(market.get("volumeNum", market.get("volume"))),
-                "volume_24h": to_number(market.get("volume24hr")),
-                "liquidity": to_number(market.get("liquidityNum", market.get("liquidity"))),
-                "updated_at": market.get("updatedAt") or "",
-            }
+        row = blank_row(day, f"{source}:{slugify(team)}", team, source)
+        row.update(
+            price=yes_price(market),
+            best_bid=to_number(market.get("bestBid")),
+            best_ask=to_number(market.get("bestAsk")),
+            spread=to_number(market.get("spread")),
+            last_trade=to_number(market.get("lastTradePrice")),
+            volume_total=to_number(market.get("volumeNum", market.get("volume"))),
+            volume_24h=to_number(market.get("volume24hr")),
+            liquidity=to_number(market.get("liquidityNum", market.get("liquidity"))),
+            updated_at=market.get("updatedAt") or "",
         )
+        rows.append(row)
     return rows

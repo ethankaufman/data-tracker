@@ -10,7 +10,7 @@ import gzip
 import re
 from pathlib import Path
 
-from tracker.convert import COLUMNS, NUMERIC_COLUMNS, convert_event
+from tracker.convert import COLUMNS, NUMERIC_COLUMNS, convert
 from tracker.sources import SOURCE_NAMES
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -35,7 +35,7 @@ def build_history(raw_dir=RAW_DIR):
         for source in SOURCE_NAMES:
             path = Path(raw_dir) / day / f"{source}.json.gz"
             if path.exists():  # a day with no raw file for a source has no rows from it
-                rows.extend(convert_event(source, day, gzip.decompress(path.read_bytes())))
+                rows.extend(convert(source, day, gzip.decompress(path.read_bytes())))
     rows.sort(key=lambda row: (row["date"], row["item_id"]))
     return rows
 
